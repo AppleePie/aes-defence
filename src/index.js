@@ -22,6 +22,10 @@ switch (command) {
     case '--decode':
         aesDefender.decode();
         break;
+    case '-t':
+    case '--translate':
+        aesDefender.translate();
+        break;
     default:
         console.log("Usage: node index.js (-p | --prepare | -d | --decode | -e | --encode) path")
         break;

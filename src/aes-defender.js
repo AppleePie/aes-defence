@@ -13,6 +13,10 @@ class AesDefender {
         return `${this.path}-dictionary`;
     }
 
+    get tablePath() {
+        return `${this.path}-table.txt`;
+    }
+
     get aesEncoder() {
         const key = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
         return new aes.ModeOfOperation.ecb(key);
@@ -69,13 +73,25 @@ class AesDefender {
         fs.writeFileSync(this.dictionaryPath, Buffer.from(encryptedDictionaryBytes));
     }
 
+    translate() {
+        const encryptedToSourceMap = this.#getSourceByEncryptedByteMap();
+        const fileContent = [];
+
+        for (const [encryptedByteBlockHex, sourceByte] of encryptedToSourceMap) {
+            const sourceByteHex = aes.utils.hex.fromBytes(new Uint8Array([sourceByte]));
+            fileContent.push(`${encryptedByteBlockHex} -> ${sourceByteHex}`)
+        }
+
+        fs.writeFileSync(this.tablePath, fileContent.join('\n'), { encoding: 'utf-8' });
+    }
+
     decode() {
         if (!fs.existsSync(this.path)) {
             throw new Error('File is not exists!');
         }
 
         const fileContent = fs.readFileSync(this.path);
-        const encryptedToSourceMap = this.getSourceByEncryptedByteMap();
+        const encryptedToSourceMap = this.#getSourceByEncryptedByteMap();
 
         const bytes = [];
 
@@ -91,7 +107,7 @@ class AesDefender {
         fs.writeFileSync(this.path, Buffer.from(bytes));
     }
 
-    getSourceByEncryptedByteMap() {
+    #getSourceByEncryptedByteMap() {
         if (!fs.existsSync(this.dictionaryPath)) {
             throw new Error('Dictionary for file is not exists!');
         }
